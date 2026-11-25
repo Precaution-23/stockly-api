@@ -1,0 +1,40 @@
+# Render Blueprint for the Stockly API (New → Blueprint → select this repo)
+services:
+  - type: web
+    name: stockly-api
+    runtime: node
+    plan: starter
+    region: frankfurt
+    buildCommand: npm ci
+    preDeployCommand: npm run run:migration
+    startCommand: npm start
+    healthCheckPath: /
+    disk:
+      name: stockly-uploads
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: UPLOADS_PATH
+        value: /var/data/uploads
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: MAIL_HOST
+        value: smtp-relay.brevo.com
+      - key: MAIL_PORT
+        value: "587"
+      - key: MAIL_USER
+        sync: false
+      - key: MAIL_PASS
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: SEED_ADMIN_PASSWORD
+        sync: false

@@ -1,0 +1,62 @@
+[
+  {
+    "role": "Admin",
+    "resources": [
+      { "name": "Dashboard", "create": false, "read": true, "update": false, "delete": false },
+      { "name": "Requests", "create": true, "read": true, "update": true, "delete": true },
+      { "name": "Inventory", "create": false, "read": true, "update": false, "delete": false },
+      { "name": "Items", "create": true, "read": true, "update": true, "delete": true },
+      { "name": "Locations", "create": true, "read": true, "update": true, "delete": true },
+      { "name": "Vendors", "create": true, "read": true, "update": true, "delete": true },
+      { "name": "Users", "create": true, "read": true, "update": true, "delete": true },
+      { "name": "Roles", "create": true, "read": true, "update": true, "delete": true },
+      { "name": "AuditLogs", "create": false, "read": true, "update": false, "delete": false },
+      { "name": "Configurations", "create": true, "read": true, "update": true, "delete": true }
+    ]
+  },
+  {
+    "role": "Operation",
+    "resources": [
+      { "name": "Dashboard", "create": false, "read": true, "update": false, "delete": false },
+      { "name": "Requests", "create": true, "read": true, "update": true, "delete": false },
+      { "name": "Inventory", "create": false, "read": true, "update": false, "delete": false },
+      { "name": "Items", "create": false, "read": true, "update": false, "delete": false },
+      { "name": "Locations", "create": false, "read": true, "update": false, "delete": false },
+      { "name": "Vendors", "create": false, "read": true, "update": false, "delete": false },
+      { "name": "Users", "create": false, "read": false, "update": false, "delete": false },
+      { "name": "Roles", "create": false, "read": false, "update": false, "delete": false },
+      { "name": "AuditLogs", "create": false, "read": false, "update": false, "delete": false },
+      { "name": "Configurations", "create": false, "read": false, "update": false, "delete": false }
+    ]
+  },
+  {
+    "role": "Finance",
+    "resources": [
+      { "name": "Dashboard", "create": false, "read": true, "update": false, "delete": false },
+      { "name": "Requests", "create": false, "read": true, "update": true, "delete": false },
+      { "name": "Inventory", "create": false, "read": true, "update": false, "delete": false },
+      { "name": "Items", "create": false, "read": true, "update": false, "delete": false },
+      { "name": "Locations", "create": false, "read": true, "update": false, "delete": false },
+      { "name": "Vendors", "create": false, "read": true, "update": false, "delete": false },
+      { "name": "Users", "create": false, "read": false, "update": false, "delete": false },
+      { "name": "Roles", "create": false, "read": false, "update": false, "delete": false },
+      { "name": "AuditLogs", "create": false, "read": false, "update": false, "delete": false },
+      { "name": "Configurations", "create": false, "read": false, "update": false, "delete": false }
+    ]
+  },
+  {
+    "role": "Requester",
+    "resources": [
+      { "name": "Dashboard", "create": false, "read": true, "update": false, "delete": false },
+      { "name": "Requests", "create": true, "read": true, "update": false, "delete": false },
+      { "name": "Inventory", "create": false, "read": false, "update": false, "delete": false },
+      { "name": "Items", "create": false, "read": true, "update": false, "delete": false },
+      { "name": "Locations", "create": false, "read": true, "update": false, "delete": false },
+      { "name": "Vendors", "create": false, "read": true, "update": false, "delete": false },
+      { "name": "Users", "create": false, "read": false, "update": false, "delete": false },
+      { "name": "Roles", "create": false, "read": false, "update": false, "delete": false },
+      { "name": "AuditLogs", "create": false, "read": false, "update": false, "delete": false },
+      { "name": "Configurations", "create": false, "read": false, "update": false, "delete": false }
+    ]
+  }
+]
