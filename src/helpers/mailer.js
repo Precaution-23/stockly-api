@@ -107,6 +107,19 @@ async function sendRequestApprovedEmail(user, request) {
   await sendEmail(user.email, 'Purchase Request Approved', html)
 }
 
+// To Operation when a request is fully approved and can be bought
+async function sendReadyToPurchaseEmail(users, request) {
+  const html = `
+    <h2>Purchase Request Approved — Ready to Buy</h2>
+    ${requestRowHtml(request)}
+    <p>This request has received all its approvals and can now be purchased. Mark it as purchased (with the invoice) once it's bought.</p>
+    ${linkHtml('Open it here', requestUrl('manage', request))}
+  `
+  for (const user of users) {
+    await sendEmail(user.email, 'Request Approved — Ready to Purchase', html)
+  }
+}
+
 async function sendRequestRejectedEmail(user, request, note) {
   const html = `
     <h2>Your Purchase Request Has Been Rejected</h2>
@@ -216,5 +229,6 @@ module.exports = {
   sendItemPendingApprovalEmail,
   sendItemApprovedEmail,
   sendPasswordResetEmail,
-  sendPendingDigestEmail
+  sendPendingDigestEmail,
+  sendReadyToPurchaseEmail
 }

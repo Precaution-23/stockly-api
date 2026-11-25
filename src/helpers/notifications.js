@@ -65,6 +65,13 @@ module.exports = {
     link: `/requests/mine?id=${request.id}`
   }, () => mailer.sendRequestApprovedEmail(user, request)),
 
+  readyToPurchase: (users, request) => deliver(users, {
+    type: 'request_ready_to_purchase',
+    title: 'Ready to purchase',
+    message: `${requestSummary(request)} is fully approved and can be bought`,
+    link: `/requests/manage?id=${request.id}`
+  }, () => mailer.sendReadyToPurchaseEmail(users, request)),
+
   requestRejected: (user, request, note) => deliver(user, {
     type: 'request_rejected',
     title: 'Request rejected',

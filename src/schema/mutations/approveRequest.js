@@ -5,10 +5,25 @@ const db = require('../../../database/models')
 const notifications = require('../../helpers/notifications')
 const { assertGroup, requestTotal, findApprovalRule, assertNotOwnRequest, canFinalApprove } = require('../../helpers/requestAuth')
 
+// Fully approved: tell the requester, and tell Operation it can be bought
 async function notifyCreatorApproved(request) {
-  if (!request.created_by) return
-  const creator = await db.User.findByPk(request.created_by)
-  if (creator) notifications.requestApproved(creator, request).catch(console.error)
+  if (request.created_by) {
+    const creator = await db.User.findByPk(request.created_by)
+    if (creator) notifications.requestApproved(creator, request).catch(console.error)
+  }
+  const buyers = await purchasers(request)
+  if (buyers.length) notifications.readyToPurchase(buyers, request).catch(console.error)
+}
+
+// Active users in the Operation group or with the Operation role (admins if there are none),
+// minus the requester, who already gets their own "approved" email
+async function purchasers(request) {
+  const operation = await db.User.findAll({
+    where: { is_active: true, [Op.or]: [{ group_name: 'operation' }, { '$Role.name$': 'Operation' }] },
+    include: [{ model: db.Role, attributes: [] }]
+  })
+  const users = operation.length ? operation : await db.User.findAll({ where: { is_active: true, group_name: 'admin' } })
+  return users.filter((u) => String(u.id) !== String(request.created_by))
 }
 
 module.exports = {
