@@ -1,6 +1,7 @@
 const { GraphQLNonNull, GraphQLInputObjectType, GraphQLString } = require('graphql')
 const bcrypt = require('bcryptjs')
 const Jwt = require('../../helpers/jwt')
+const { assertStrongPassword } = require('../../helpers/passwordPolicy')
 const MessageType = require('../types/messageType')
 
 const resetPasswordInput = new GraphQLInputObjectType({
@@ -19,7 +20,7 @@ module.exports = {
   async resolve(_, { payload }) {
     try {
       const user = await Jwt.verifyResetToken(payload.token)
-      if (!payload.new_password || payload.new_password.length < 8) throw new Error('Password must be at least 8 characters')
+      assertStrongPassword(payload.new_password, user.email)
       const hashedPassword = await bcrypt.hash(payload.new_password, 10)
       await user.update({ password: hashedPassword })
       return { message: 'Password updated successfully.' }

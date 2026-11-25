@@ -7,9 +7,9 @@ const db = require('../../../database/models')
 const Jwt = require('../../helpers/jwt')
 const { sendWelcomeEmail } = require('../../helpers/mailer')
 const { assertPermission } = require('../../helpers/requestAuth')
+const { assertStrongPassword } = require('../../helpers/passwordPolicy')
 
 const GROUPS = ['admin', 'operation', 'finance', 'requester']
-const MIN_PASSWORD = 8
 
 const createUserInput = new GraphQLInputObjectType({
   name: 'CreateUserInput',
@@ -38,7 +38,7 @@ module.exports = {
       if (!email) throw new Error('Email is required')
       if (!GROUPS.includes(payload.group_name)) throw new Error('Invalid group')
       const password = payload.password || ''
-      if (password && password.length < MIN_PASSWORD) throw new Error(`Password must be at least ${MIN_PASSWORD} characters`)
+      if (password) assertStrongPassword(password, email)
 
       const duplicate = await db.User.findOne({
         where: {
