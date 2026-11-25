@@ -1,12 +1,15 @@
 const { Op } = require('sequelize')
 const DashboardStatsType = require('../types/dashboardStatsType')
 const db = require('../../../database/models')
+const { hasPermission } = require('../../helpers/requestAuth')
 
 module.exports = {
   type: DashboardStatsType,
   async resolve(_, __, context) {
     try {
-      await context()
+      const { user } = await context()
+      // Recent activity is audit-log data: only roles with AuditLogs read get it
+      const canSeeActivity = hasPermission(user, 'AuditLogs', 'read')
 
       const [
         totalRequests,
@@ -29,7 +32,7 @@ module.exports = {
         db.Request.count({ where: { status: 'purchased' } }),
         db.Inventory.count(),
         db.Inventory.findAll({ attributes: ['total_price'] }),
-        db.AuditLog.findAll({ order: [['createdAt', 'DESC']], limit: 10 })
+        canSeeActivity ? db.AuditLog.findAll({ order: [['createdAt', 'DESC']], limit: 10 }) : []
       ])
 
       const totalInventoryValue = inventoryRows.reduce(
