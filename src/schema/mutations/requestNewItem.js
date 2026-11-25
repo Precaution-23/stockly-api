@@ -41,8 +41,12 @@ module.exports = {
       )
 
       // Notify item managers
+      // Users who can approve items; admins if no role has that permission
       getItemManagers()
-        .then((managers) => notifications.itemPendingApproval(managers, item, user))
+        .then(async (managers) => {
+          if (!managers.length) managers = await db.User.findAll({ where: { group_name: 'admin', is_active: true } })
+          return notifications.itemPendingApproval(managers, item, user)
+        })
         .catch(console.error)
 
       return item

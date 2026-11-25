@@ -24,6 +24,19 @@ const createRequestInput = new GraphQLInputObjectType({
   })
 })
 
+async function activeUsersInGroup(group, excludeId) {
+  const users = await db.User.findAll({ where: { group_name: group, is_active: true } })
+  return users.filter((u) => String(u.id) !== String(excludeId))
+}
+
+async function notifyRequestCreated(request, creator) {
+  let reviewers = await activeUsersInGroup('operation', creator.id)
+  if (!reviewers.length) reviewers = await activeUsersInGroup('admin', creator.id)
+  if (reviewers.length) await notifications.requestCreated(reviewers, request, creator)
+  else console.warn(`No active Operation or Admin users to review request ${request.id}`)
+  await notifications.requestSubmitted(creator, request)
+}
+
 module.exports = {
   type: RequestType,
   args: { payload: { type: new GraphQLNonNull(createRequestInput) } },
@@ -46,9 +59,8 @@ module.exports = {
         { user_id: user.id }
       )
 
-      // Notify operation users
-      const operationUsers = await db.User.findAll({ where: { group_name: 'operation', is_active: true } })
-      notifications.requestCreated(operationUsers, request).catch(console.error)
+      // Notify reviewers (Operation; admins if there are none) and confirm to the requester
+      notifyRequestCreated(request, user).catch(console.error)
 
       return request
     } catch (error) {

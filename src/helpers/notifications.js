@@ -30,12 +30,19 @@ async function deliver(users, inApp, sendEmail) {
 module.exports = {
   createInApp,
 
-  requestCreated: (users, request) => deliver(users, {
+  requestCreated: (users, request, creator) => deliver(users, {
     type: 'request_created',
     title: 'New purchase request',
     message: `${requestSummary(request)} needs review`,
     link: '/requests/manage'
-  }, () => mailer.sendRequestCreatedEmail(users, request)),
+  }, () => mailer.sendRequestCreatedEmail(users, request, creator)),
+
+  requestSubmitted: (creator, request) => deliver(creator, {
+    type: 'request_submitted',
+    title: 'Request submitted',
+    message: `Your request for ${requestSummary(request)} was sent for review`,
+    link: '/requests/mine'
+  }, () => mailer.sendRequestSubmittedEmail(creator, request)),
 
   requestForwarded: (users, request) => deliver(users, {
     type: 'request_forwarded',

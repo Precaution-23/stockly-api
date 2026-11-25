@@ -38,15 +38,33 @@ function requestRowHtml(request) {
   `
 }
 
-async function sendRequestCreatedEmail(operationUsers, request) {
+const personName = (u) => (u ? `${u.first_name} ${u.last_name}` : '—')
+
+// To reviewers (Operation, or admins when there are none)
+async function sendRequestCreatedEmail(reviewers, request, creator) {
+  const url = `${process.env.FRONTEND_URL}/requests/manage`
   const html = `
     <h2>New Purchase Request Submitted</h2>
+    <p><strong>Requested By:</strong> ${personName(creator)}${creator ? ` (${creator.email})` : ''}</p>
     ${requestRowHtml(request)}
-    <p>Please log in to review this request.</p>
+    ${request.description ? `<p><strong>Description:</strong> ${request.description}</p>` : ''}
+    <p>Please review this request: <a href="${url}">${url}</a></p>
   `
-  for (const user of operationUsers) {
+  for (const user of reviewers) {
     await sendEmail(user.email, 'New Purchase Request', html)
   }
+}
+
+// Confirmation to the person who made the request
+async function sendRequestSubmittedEmail(creator, request) {
+  const url = `${process.env.FRONTEND_URL}/requests/mine`
+  const html = `
+    <h2>Your Purchase Request Was Submitted</h2>
+    <p>Hi ${creator.first_name}, your request has been sent for review. You'll get an email at each step.</p>
+    ${requestRowHtml(request)}
+    <p>Track it here: <a href="${url}">${url}</a></p>
+  `
+  await sendEmail(creator.email, 'Purchase Request Submitted', html)
 }
 
 async function sendRequestForwardedEmail(financeUsers, request) {
@@ -156,6 +174,7 @@ module.exports = {
   sendEmail,
   sendWelcomeEmail,
   sendRequestCreatedEmail,
+  sendRequestSubmittedEmail,
   sendRequestForwardedEmail,
   sendRequestFinalApprovalEmail,
   sendRequestApprovedEmail,
