@@ -2,7 +2,7 @@ const { GraphQLNonNull, GraphQLID, GraphQLString } = require('graphql')
 const RequestType = require('../types/requestType')
 const db = require('../../../database/models')
 const notifications = require('../../helpers/notifications')
-const { assertGroup } = require('../../helpers/requestAuth')
+const { assertGroup, assertNotOwnRequest } = require('../../helpers/requestAuth')
 const { assertUploadPath } = require('../../helpers/uploads')
 const { resolvePrefix, reserveNumbers } = require('../../helpers/inventoryNumber')
 
@@ -22,6 +22,7 @@ module.exports = {
         // Row lock so two concurrent purchases of the same request can't both pass the status check
         const request = await db.Request.findByPk(id, { transaction, lock: transaction.LOCK.UPDATE })
         if (!request) throw new Error('Request not found')
+        assertNotOwnRequest(user, request)
         if (request.status !== 'approved') throw new Error('Only approved requests can be marked as purchased')
 
         const now = new Date()

@@ -8,7 +8,7 @@ class Jwt {
       email: user.email
     }
     const options = {
-      expiresIn: process.env.NODE_ENV === 'development' ? '53 weeks' : '1h'
+      expiresIn: process.env.NODE_ENV === 'development' ? '53 weeks' : '8h'
     }
     return jwt.sign(payload, process.env.JWT_SECRET, options)
   }

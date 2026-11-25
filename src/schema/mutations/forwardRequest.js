@@ -2,7 +2,7 @@ const { GraphQLNonNull, GraphQLID } = require('graphql')
 const RequestType = require('../types/requestType')
 const db = require('../../../database/models')
 const notifications = require('../../helpers/notifications')
-const { assertGroup } = require('../../helpers/requestAuth')
+const { assertGroup, assertNotOwnRequest } = require('../../helpers/requestAuth')
 
 module.exports = {
   type: RequestType,
@@ -13,6 +13,7 @@ module.exports = {
       assertGroup(user, ['admin', 'operation'])
       const request = await db.Request.findByPk(id)
       if (!request) throw new Error('Request not found')
+      assertNotOwnRequest(user, request)
       if (request.status !== 'pending') throw new Error('Only pending requests can be forwarded')
 
       await request.update(

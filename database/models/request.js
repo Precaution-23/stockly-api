@@ -116,6 +116,11 @@ Request.init(
       type: DataTypes.DATE,
       allowNull: true
     },
+    // When the daily reminder last emailed reviewers about this request (see src/jobs/reminders.js)
+    last_reminded_at: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
     final_approved_by: {
       type: DataTypes.INTEGER,
       allowNull: true,

@@ -41,7 +41,18 @@ Object.keys(db).forEach((modelName) => {
 
 // --- Audit helpers ---
 
-const getDiff = (changedKeys, oldValue, newValue, hookName) => {
+// Never copy secrets (password hashes) into the audit log; record only that they changed
+const REDACTED_KEYS = new Set(['password'])
+const redact = (diffObj) => {
+  for (const key of Object.keys(diffObj)) {
+    if (REDACTED_KEYS.has(key)) diffObj[key] = ['[hidden]', '[changed]']
+  }
+  return diffObj
+}
+
+const getDiff = (changedKeys, oldValue, newValue, hookName) => redact(rawDiff(changedKeys, oldValue, newValue, hookName))
+
+const rawDiff = (changedKeys, oldValue, newValue, hookName) => {
   if (hookName === 'afterDestroy' || hookName === 'afterBulkDestroy') {
     return Object.fromEntries(
       Object.entries(newValue).map(([key, value]) => [key, [value, null]])
@@ -72,7 +83,8 @@ const saveLogs = async (actionType, instance, options, hookName) => {
     if (options.logAudit === false) return
 
     const diff = getDiff(
-      instance._changed ? Object.keys(instance._changed) : Object.keys(instance.dataValues),
+      // Sequelize 6 keeps changed keys in a Set; changed() returns them as an array (or false)
+      hookName === 'afterUpdate' ? instance.changed() || [] : Object.keys(instance.dataValues),
       instance._previousDataValues || {},
       instance.dataValues,
       hookName

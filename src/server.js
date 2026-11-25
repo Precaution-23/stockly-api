@@ -2,6 +2,8 @@ require('dotenv').config()
 const express = require('express')
 const { createServer } = require('http')
 const { graphqlHTTP } = require('express-graphql')
+const { NoSchemaIntrospectionCustomRule } = require('graphql')
+const depthLimit = require('./helpers/depthLimit')
 const morgan = require('morgan')
 const cors = require('cors')
 const helmet = require('helmet')
@@ -10,9 +12,10 @@ const path = require('path')
 const schema = require('./schema')
 const Jwt = require('./helpers/jwt')
 const uploadsRouter = require('./routes/uploads')
-const { UPLOADS_DIR } = require('./helpers/uploads')
 
 const app = express()
+// Render terminates TLS in front of us; trust its X-Forwarded-For so req.ip is the real client (rate limits)
+app.set('trust proxy', 1)
 const server = createServer(app)
 
 // In production only the configured website origin(s) may call the API (CORS_ORIGIN, comma-separated)
@@ -23,30 +26,37 @@ if (process.env.NODE_ENV === 'production' && !allowedOrigins.length) {
 app.use(cors(process.env.NODE_ENV === 'production' ? { origin: allowedOrigins } : undefined))
 app.use(helmet({ contentSecurityPolicy: false }))
 app.use(morgan('combined'))
-app.use(express.json({ limit: '50mb' }))
-app.use(express.urlencoded({ extended: true }))
+app.use(express.json({ limit: '1mb' }))
+app.use(express.urlencoded({ extended: true, limit: '1mb' }))
 
-// Upload invoices/quotations (POST) and serve uploaded files (GET)
+// Upload invoices/quotations (POST) and download them (GET); both require a logged-in user
 app.use('/uploads', uploadsRouter)
-app.use('/uploads', express.static(UPLOADS_DIR))
 
 // Build GraphQL context from JWT
+// Resolvers call context() to authenticate; context.ip is available without logging in (rate limits)
 const buildContext = async (req) => {
-  return async () => {
+  const context = async () => {
     const { authorization } = req.headers
     if (!authorization) throw new Error('Authorization header missing')
     const token = authorization.split(' ')[1]
     const user = await Jwt.verifyToken(token)
     return { user, token }
   }
+  context.ip = req.ip
+  return context
 }
+
+const isProduction = process.env.NODE_ENV === 'production'
+// Production: hide the schema from introspection and refuse absurdly nested queries
+const validationRules = [depthLimit(10), ...(isProduction ? [NoSchemaIntrospectionCustomRule] : [])]
 
 app.use(
   '/graphql',
   graphqlHTTP(async (req) => ({
     schema,
     context: await buildContext(req),
-    graphiql: process.env.NODE_ENV !== 'production'
+    graphiql: !isProduction,
+    validationRules
   }))
 )
 

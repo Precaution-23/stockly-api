@@ -2,7 +2,7 @@ const { GraphQLNonNull, GraphQLInputObjectType, GraphQLID, GraphQLString } = req
 const RequestType = require('../types/requestType')
 const db = require('../../../database/models')
 const notifications = require('../../helpers/notifications')
-const { assertGroup } = require('../../helpers/requestAuth')
+const { assertGroup, assertNotOwnRequest } = require('../../helpers/requestAuth')
 
 const rejectRequestInput = new GraphQLInputObjectType({
   name: 'RejectRequestInput',
@@ -20,6 +20,7 @@ module.exports = {
       const { user } = await context()
       const request = await db.Request.findByPk(payload.id)
       if (!request) throw new Error('Request not found')
+      assertNotOwnRequest(user, request)
       if (!['pending', 'forwarded', 'awaiting_final_approval', 'approved'].includes(request.status)) {
         throw new Error('Request cannot be rejected in its current status')
       }

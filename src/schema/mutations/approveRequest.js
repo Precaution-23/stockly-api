@@ -2,7 +2,7 @@ const { GraphQLNonNull, GraphQLID } = require('graphql')
 const RequestType = require('../types/requestType')
 const db = require('../../../database/models')
 const notifications = require('../../helpers/notifications')
-const { assertGroup, requestTotal, findApprovalRule } = require('../../helpers/requestAuth')
+const { assertGroup, requestTotal, findApprovalRule, assertNotOwnRequest } = require('../../helpers/requestAuth')
 
 async function notifyCreatorApproved(request) {
   if (!request.created_by) return
@@ -18,6 +18,7 @@ module.exports = {
       const { user } = await context()
       const request = await db.Request.findByPk(id)
       if (!request) throw new Error('Request not found')
+      assertNotOwnRequest(user, request)
 
       // Stage 1: finance approval, possibly escalating to a final approver
       if (request.status === 'forwarded') {

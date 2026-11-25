@@ -16,6 +16,24 @@ function assertPermission(user, resource, action) {
   if (!hasPermission(user, resource, action)) throw new Error('Not authorized')
 }
 
+// Separation of duties: nobody (except admins) may forward, approve, reject or purchase their own request
+function assertNotOwnRequest(user, request) {
+  if (user.group_name === 'admin') return
+  if (request.created_by != null && String(request.created_by) === String(user.id)) {
+    throw new Error("You can't act on your own request. Another reviewer must handle it.")
+  }
+}
+
+// Who may see a single request: its creator, its final approver, or the workflow groups
+// (finance never sees pending requests, matching the requests list)
+function canViewRequest(user, request) {
+  if (String(request.created_by) === String(user.id)) return true
+  if (request.final_approver_id != null && String(request.final_approver_id) === String(user.id)) return true
+  if (['admin', 'operation'].includes(user.group_name)) return true
+  if (user.group_name === 'finance') return request.status !== 'pending'
+  return false
+}
+
 function canManageConfigurations(user) {
   return hasPermission(user, 'Configurations', 'update')
 }
@@ -36,4 +54,4 @@ function findApprovalRule(total) {
   })
 }
 
-module.exports = { assertGroup, hasPermission, assertPermission, canManageConfigurations, requestTotal, findApprovalRule }
+module.exports = { assertGroup, hasPermission, assertPermission, assertNotOwnRequest, canViewRequest, canManageConfigurations, requestTotal, findApprovalRule }

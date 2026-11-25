@@ -34,49 +34,49 @@ module.exports = {
     type: 'request_created',
     title: 'New purchase request',
     message: `${requestSummary(request)} needs review`,
-    link: '/requests/manage'
+    link: `/requests/manage?id=${request.id}`
   }, () => mailer.sendRequestCreatedEmail(users, request, creator)),
 
   requestSubmitted: (creator, request) => deliver(creator, {
     type: 'request_submitted',
     title: 'Request submitted',
     message: `Your request for ${requestSummary(request)} was sent for review`,
-    link: '/requests/mine'
+    link: `/requests/mine?id=${request.id}`
   }, () => mailer.sendRequestSubmittedEmail(creator, request)),
 
   requestForwarded: (users, request) => deliver(users, {
     type: 'request_forwarded',
     title: 'Request awaiting finance approval',
     message: `${requestSummary(request)} was forwarded for approval`,
-    link: '/requests/manage'
+    link: `/requests/manage?id=${request.id}`
   }, () => mailer.sendRequestForwardedEmail(users, request)),
 
   requestFinalApproval: (approver, request) => deliver(approver, {
     type: 'request_final_approval',
     title: 'Final approval needed',
     message: `${requestSummary(request)} needs your final approval`,
-    link: '/requests/awaiting'
+    link: `/requests/awaiting?id=${request.id}`
   }, () => mailer.sendRequestFinalApprovalEmail(approver, request)),
 
   requestApproved: (user, request) => deliver(user, {
     type: 'request_approved',
     title: 'Request approved',
     message: `Your request for ${requestSummary(request)} was approved`,
-    link: '/requests/mine'
+    link: `/requests/mine?id=${request.id}`
   }, () => mailer.sendRequestApprovedEmail(user, request)),
 
   requestRejected: (user, request, note) => deliver(user, {
     type: 'request_rejected',
     title: 'Request rejected',
     message: `Your request for ${requestSummary(request)} was rejected${note ? `: ${note}` : ''}`,
-    link: '/requests/mine'
+    link: `/requests/mine?id=${request.id}`
   }, () => mailer.sendRequestRejectedEmail(user, request, note)),
 
   requestPurchased: (user, request) => deliver(user, {
     type: 'request_purchased',
     title: 'Request purchased',
     message: `${requestSummary(request)} has been purchased and added to inventory`,
-    link: '/requests/mine'
+    link: `/requests/mine?id=${request.id}`
   }, () => mailer.sendRequestPurchasedEmail(user, request)),
 
   itemPendingApproval: (managers, item, creator) => deliver(managers, {

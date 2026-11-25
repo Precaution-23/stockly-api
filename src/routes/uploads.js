@@ -47,4 +47,15 @@ router.post('/', requireAuth, (req, res) => {
   })
 })
 
+// Download a stored file. Names are server-generated UUIDs, so anything else is rejected (no path tricks)
+const STORED_NAME = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(pdf|png|jpe?g|webp)$/
+router.get('/:file', requireAuth, (req, res) => {
+  const { file } = req.params
+  if (!STORED_NAME.test(file)) return res.status(404).json({ message: 'File not found' })
+  res.set('Cache-Control', 'private, no-store')
+  res.sendFile(path.join(UPLOADS_DIR, file), (err) => {
+    if (err && !res.headersSent) res.status(404).json({ message: 'File not found' })
+  })
+})
+
 module.exports = router
