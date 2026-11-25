@@ -22,11 +22,13 @@ module.exports = {
   async resolve(_, { payload = {} }, context) {
     try {
       const { user } = await context()
-      assertGroup(user, ['admin', 'operation', 'finance'])
+      assertGroup(user, ['admin', 'operation', 'finance', 'approver'])
 
       const base = []
       // Finance cannot see pending requests
       if (user.group_name === 'finance') base.push({ status: { [Op.ne]: 'pending' } })
+      // Final Approvers only see requests waiting for final approval
+      if (user.group_name === 'approver') base.push({ status: 'awaiting_final_approval' })
       if (payload.q && payload.q.trim()) base.push({ item_name: { [Op.iLike]: likeTerm(payload.q) } })
 
       const where = { [Op.and]: payload.status && payload.status !== 'all' ? [...base, { status: payload.status }] : base }
