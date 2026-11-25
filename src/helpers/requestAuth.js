@@ -24,11 +24,19 @@ function assertNotOwnRequest(user, request) {
   }
 }
 
+// Final approval: the rule's named approver, any Final Approver (group "approver"), or an admin
+function canFinalApprove(user, request) {
+  if (['admin', 'approver'].includes(user.group_name)) return true
+  return request.final_approver_id != null && String(request.final_approver_id) === String(user.id)
+}
+
 // Who may see a single request: its creator, its final approver, or the workflow groups
 // (finance never sees pending requests, matching the requests list)
 function canViewRequest(user, request) {
   if (String(request.created_by) === String(user.id)) return true
   if (request.final_approver_id != null && String(request.final_approver_id) === String(user.id)) return true
+  // Final Approvers see everything that reached them: awaiting now, or decided at that stage
+  if (user.group_name === 'approver') return request.status === 'awaiting_final_approval' || request.final_approver_id != null
   if (['admin', 'operation'].includes(user.group_name)) return true
   if (user.group_name === 'finance') return request.status !== 'pending'
   return false
@@ -54,4 +62,4 @@ function findApprovalRule(total) {
   })
 }
 
-module.exports = { assertGroup, hasPermission, assertPermission, assertNotOwnRequest, canViewRequest, canManageConfigurations, requestTotal, findApprovalRule }
+module.exports = { assertGroup, hasPermission, assertPermission, assertNotOwnRequest, canFinalApprove, canViewRequest, canManageConfigurations, requestTotal, findApprovalRule }

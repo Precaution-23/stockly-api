@@ -45,7 +45,7 @@ User.init(
       allowNull: false
     },
     group_name: {
-      type: DataTypes.ENUM('admin', 'operation', 'finance', 'requester'),
+      type: DataTypes.ENUM('admin', 'operation', 'finance', 'requester', 'approver'),
       allowNull: false,
       defaultValue: 'requester'
     },

@@ -39,13 +39,17 @@ async function runReminders(now = new Date()) {
 
   const operation = await reviewersFor('operation')
   const finance = await reviewersFor('finance')
+  const finalApprovers = await activeUsers('approver')
   for (const request of requests) {
     if (request.status === 'pending') operation.forEach((u) => add(u, request, 'manage'))
     if (request.status === 'forwarded') finance.forEach((u) => add(u, request, 'manage'))
     if (request.status === 'awaiting_final_approval') {
-      const approver = request.final_approver_id && (await db.User.findByPk(request.final_approver_id))
-      const targets = approver && approver.is_active ? [approver] : await activeUsers('admin')
-      targets.forEach((u) => add(u, request, approver && approver.is_active ? 'awaiting' : 'manage'))
+      // The assigned approver and all Final Approvers; admins only if nobody else can act
+      const assigned = request.final_approver_id && (await db.User.findByPk(request.final_approver_id))
+      const targets = [...finalApprovers]
+      if (assigned && assigned.is_active && !targets.some((u) => u.id === assigned.id)) targets.push(assigned)
+      if (targets.length) targets.forEach((u) => add(u, request, u.group_name === 'admin' ? 'manage' : 'awaiting'))
+      else (await activeUsers('admin')).forEach((u) => add(u, request, 'manage'))
     }
   }
 

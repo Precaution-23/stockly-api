@@ -1,8 +1,9 @@
 const { GraphQLNonNull, GraphQLID } = require('graphql')
+const { Op } = require('sequelize')
 const RequestType = require('../types/requestType')
 const db = require('../../../database/models')
 const notifications = require('../../helpers/notifications')
-const { assertGroup, requestTotal, findApprovalRule, assertNotOwnRequest } = require('../../helpers/requestAuth')
+const { assertGroup, requestTotal, findApprovalRule, assertNotOwnRequest, canFinalApprove } = require('../../helpers/requestAuth')
 
 async function notifyCreatorApproved(request) {
   if (!request.created_by) return
@@ -30,8 +31,11 @@ module.exports = {
             { status: 'awaiting_final_approval', approved_by: user.id, final_approver_id: rule.approver_id },
             { user_id: user.id }
           )
-          const approver = await db.User.findByPk(rule.approver_id)
-          if (approver) notifications.requestFinalApproval(approver, request).catch(console.error)
+          // The rule's approver plus every Final Approver (any of them may decide)
+          const approvers = await db.User.findAll({
+            where: { is_active: true, [Op.or]: [{ id: rule.approver_id }, { group_name: 'approver' }] }
+          })
+          for (const approver of approvers) notifications.requestFinalApproval(approver, request).catch(console.error)
           return request
         }
 
@@ -42,9 +46,7 @@ module.exports = {
 
       // Stage 2: final approval by the assigned approver (admins as fallback)
       if (request.status === 'awaiting_final_approval') {
-        if (String(request.final_approver_id) !== String(user.id) && user.group_name !== 'admin') {
-          throw new Error('Not authorized')
-        }
+        if (!canFinalApprove(user, request)) throw new Error('Not authorized')
 
         await request.update(
           { status: 'approved', final_approved_at: new Date(), final_approved_by: user.id },

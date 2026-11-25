@@ -9,7 +9,8 @@ const { sendWelcomeEmail } = require('../../helpers/mailer')
 const { assertPermission } = require('../../helpers/requestAuth')
 const { assertStrongPassword } = require('../../helpers/passwordPolicy')
 
-const GROUPS = ['admin', 'operation', 'finance', 'requester']
+// approver = Final Approver: only acts on requests awaiting final approval
+const GROUPS = ['admin', 'operation', 'finance', 'requester', 'approver']
 
 const createUserInput = new GraphQLInputObjectType({
   name: 'CreateUserInput',

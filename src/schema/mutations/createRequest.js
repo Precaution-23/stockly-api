@@ -43,6 +43,7 @@ module.exports = {
   async resolve(_, { payload }, context) {
     try {
       const { user } = await context()
+      if (user.group_name === 'approver') throw new Error('Final Approvers cannot make requests')
       // Optional references: treat empty strings as "not selected"
       const item_id = payload.item_id || null
       const vendor_id = payload.vendor_id || null

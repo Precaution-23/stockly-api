@@ -8,7 +8,11 @@ module.exports = {
     try {
       const { user } = await context()
       return db.Request.findAll({
-        where: { status: 'awaiting_final_approval', final_approver_id: user.id },
+        // Final Approvers see every request awaiting final approval; anyone else only the ones a rule assigned to them
+        where: {
+          status: 'awaiting_final_approval',
+          ...(user.group_name === 'approver' ? {} : { final_approver_id: user.id })
+        },
         order: [['createdAt', 'DESC']]
       })
     } catch (error) {

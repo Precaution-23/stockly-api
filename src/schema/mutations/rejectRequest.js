@@ -2,7 +2,7 @@ const { GraphQLNonNull, GraphQLInputObjectType, GraphQLID, GraphQLString } = req
 const RequestType = require('../types/requestType')
 const db = require('../../../database/models')
 const notifications = require('../../helpers/notifications')
-const { assertGroup, assertNotOwnRequest } = require('../../helpers/requestAuth')
+const { assertGroup, assertNotOwnRequest, canFinalApprove } = require('../../helpers/requestAuth')
 
 const rejectRequestInput = new GraphQLInputObjectType({
   name: 'RejectRequestInput',
@@ -27,11 +27,7 @@ module.exports = {
 
       if (request.status === 'pending') assertGroup(user, ['admin', 'operation'])
       if (['forwarded', 'approved'].includes(request.status)) assertGroup(user, ['admin', 'finance'])
-      if (
-        request.status === 'awaiting_final_approval' &&
-        String(request.final_approver_id) !== String(user.id) &&
-        user.group_name !== 'admin'
-      ) {
+      if (request.status === 'awaiting_final_approval' && !canFinalApprove(user, request)) {
         throw new Error('Not authorized')
       }
 

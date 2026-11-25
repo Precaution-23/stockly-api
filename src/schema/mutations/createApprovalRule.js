@@ -36,6 +36,9 @@ module.exports = {
 
       const approver = await db.User.findByPk(approver_id)
       if (!approver || !approver.is_active) throw new Error('Approver not found or inactive')
+      if (!['approver', 'admin'].includes(approver.group_name)) {
+        throw new Error('The approver must be a Final Approver or an admin')
+      }
 
       // Active ranges [min, max) must not overlap, so a request matches at most one rule
       if (is_active) {

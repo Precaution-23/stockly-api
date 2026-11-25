@@ -20,6 +20,7 @@ module.exports = {
   async resolve(_, { payload }, context) {
     try {
       const { user } = await context()
+      if (user.group_name === 'approver') throw new Error('Final Approvers cannot make requests')
       const name = payload.name.trim()
       if (!name) throw new Error('Item name is required')
 
