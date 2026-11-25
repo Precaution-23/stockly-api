@@ -1,6 +1,7 @@
 const { GraphQLList, GraphQLInputObjectType, GraphQLString } = require('graphql')
 const AuditLogType = require('../types/auditLogType')
 const db = require('../../../database/models')
+const { assertPermission } = require('../../helpers/requestAuth')
 
 const auditLogsQueryInput = new GraphQLInputObjectType({
   name: 'AuditLogsQueryInput',
@@ -15,7 +16,8 @@ module.exports = {
   args: { payload: { type: auditLogsQueryInput } },
   async resolve(_, { payload }, context) {
     try {
-      await context()
+      const { user } = await context()
+      assertPermission(user, 'AuditLogs', 'read')
       const where = {}
       if (payload && payload.model) where.model = payload.model
       if (payload && payload.action_type) where.action_type = payload.action_type

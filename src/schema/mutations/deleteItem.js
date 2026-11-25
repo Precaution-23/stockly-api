@@ -1,5 +1,6 @@
 const { GraphQLNonNull, GraphQLID, GraphQLBoolean } = require('graphql')
 const db = require('../../../database/models')
+const { assertPermission } = require('../../helpers/requestAuth')
 
 module.exports = {
   type: GraphQLBoolean,
@@ -7,6 +8,7 @@ module.exports = {
   async resolve(_, { id }, context) {
     try {
       const { user } = await context()
+      assertPermission(user, 'Items', 'delete')
       const item = await db.Item.findByPk(id)
       if (!item) throw new Error('Item not found')
 

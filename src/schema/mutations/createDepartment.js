@@ -2,6 +2,7 @@ const { GraphQLNonNull, GraphQLInputObjectType, GraphQLID, GraphQLString } = req
 const { Op } = require('sequelize')
 const DepartmentType = require('../types/departmentType')
 const db = require('../../../database/models')
+const { assertPermission } = require('../../helpers/requestAuth')
 const { FALLBACK_PREFIX, PREFIX_RE, prefixOwner } = require('../../helpers/inventoryNumber')
 
 const createDepartmentInput = new GraphQLInputObjectType({
@@ -21,6 +22,7 @@ module.exports = {
   async resolve(_, { payload }, context) {
     try {
       const { user } = await context()
+      assertPermission(user, 'Configurations', payload.id ? 'update' : 'create')
       const { id, name, description, tag } = payload
 
       // Prefix drives inventory numbers (e.g. MED-0001); changing it only affects future items

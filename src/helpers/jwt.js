@@ -46,11 +46,12 @@ class Jwt {
     })
   }
 
-  static generateResetToken(user) {
+  // Signed with the current password hash, so the link stops working once the password changes
+  static generateResetToken(user, expiresIn = '15m') {
     return jwt.sign(
       { id: user.id },
       process.env.JWT_SECRET + user.password,
-      { expiresIn: '15m' }
+      { expiresIn }
     )
   }
 

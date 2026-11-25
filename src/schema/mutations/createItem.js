@@ -1,6 +1,7 @@
 const { GraphQLNonNull, GraphQLInputObjectType, GraphQLID, GraphQLString } = require('graphql')
 const ItemType = require('../types/itemType')
 const db = require('../../../database/models')
+const { assertPermission } = require('../../helpers/requestAuth')
 
 const createItemInput = new GraphQLInputObjectType({
   name: 'CreateItemInput',
@@ -18,6 +19,7 @@ module.exports = {
   async resolve(_, { payload }, context) {
     try {
       const { user } = await context()
+      assertPermission(user, 'Items', payload.id ? 'update' : 'create')
       const { id, name, description, department_id } = payload
       if (id) {
         const item = await db.Item.findByPk(id)

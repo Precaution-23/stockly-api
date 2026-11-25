@@ -1,5 +1,6 @@
 const { GraphQLNonNull, GraphQLID, GraphQLBoolean } = require('graphql')
 const db = require('../../../database/models')
+const { assertPermission } = require('../../helpers/requestAuth')
 
 module.exports = {
   type: GraphQLBoolean,
@@ -7,6 +8,7 @@ module.exports = {
   async resolve(_, { id }, context) {
     try {
       const { user } = await context()
+      assertPermission(user, 'Vendors', 'delete')
       const vendor = await db.Vendor.findByPk(id)
       if (!vendor) throw new Error('Vendor not found')
 

@@ -21,26 +21,8 @@ module.exports = {
   args: {
     payload: { type: new GraphQLNonNull(signupInput) }
   },
-  async resolve(_, { payload }) {
-    try {
-      const existing = await db.User.findOne({ where: { email: payload.email } })
-      if (existing) throw new Error('Email already in use')
-
-      const hashedPassword = await bcrypt.hash(payload.password, 10)
-      const user = await db.User.create({
-        ...payload,
-        password: hashedPassword,
-        group_name: payload.group_name || 'requester'
-      })
-
-      const userWithRole = await db.User.findByPk(user.id, {
-        include: [{ model: db.Role, include: [{ model: db.Permission }] }]
-      })
-
-      const token = Jwt.generateToken(userWithRole)
-      return { token, user: userWithRole }
-    } catch (error) {
-      return error
-    }
+  // Public sign-up is disabled: only administrators create accounts (createUser)
+  async resolve() {
+    return new Error('Sign-up is disabled. Ask an administrator to create your account.')
   }
 }

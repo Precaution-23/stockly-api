@@ -138,8 +138,23 @@ async function sendPasswordResetEmail(email, token) {
   await sendEmail(email, 'Reset Your Password', html)
 }
 
+// Sent when an administrator creates an account: the user picks their own password via the link
+async function sendWelcomeEmail(user, token) {
+  const setUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}&welcome=1`
+  const html = `
+    <h2>Welcome to Stockly, ${user.first_name}</h2>
+    <p>An administrator has created a Stockly account for you.</p>
+    <p><strong>Your login email:</strong> ${user.email}</p>
+    <p>Click the link below to choose your password. This link expires in 3 days.</p>
+    <a href="${setUrl}">${setUrl}</a>
+    <p>If the link has expired, use "Forgot password" on the login page: ${process.env.FRONTEND_URL}/login</p>
+  `
+  await sendEmail(user.email, 'Your Stockly account', html)
+}
+
 module.exports = {
   sendEmail,
+  sendWelcomeEmail,
   sendRequestCreatedEmail,
   sendRequestForwardedEmail,
   sendRequestFinalApprovalEmail,

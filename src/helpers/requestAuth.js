@@ -11,6 +11,11 @@ function hasPermission(user, resource, action) {
   return permissions.some((p) => p.get('resource') === resource && p.get(action) === true)
 }
 
+// Throws unless the user's role grants `action` on `resource` (checked on the server, not just hidden in the UI)
+function assertPermission(user, resource, action) {
+  if (!hasPermission(user, resource, action)) throw new Error('Not authorized')
+}
+
 function canManageConfigurations(user) {
   return hasPermission(user, 'Configurations', 'update')
 }
@@ -31,4 +36,4 @@ function findApprovalRule(total) {
   })
 }
 
-module.exports = { assertGroup, hasPermission, canManageConfigurations, requestTotal, findApprovalRule }
+module.exports = { assertGroup, hasPermission, assertPermission, canManageConfigurations, requestTotal, findApprovalRule }

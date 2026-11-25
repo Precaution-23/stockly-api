@@ -2,6 +2,7 @@ const { GraphQLList, GraphQLInputObjectType, GraphQLString } = require('graphql'
 const { Op } = require('sequelize')
 const RequestType = require('../types/requestType')
 const db = require('../../../database/models')
+const { assertGroup } = require('../../helpers/requestAuth')
 
 const requestsQueryInput = new GraphQLInputObjectType({
   name: 'RequestsQueryInput',
@@ -17,6 +18,8 @@ module.exports = {
   async resolve(_, { payload }, context) {
     try {
       const { user } = await context()
+      // Everyone's requests are only for the approval workflow groups; requesters use myRequests
+      assertGroup(user, ['admin', 'operation', 'finance'])
       const where = {}
 
       const statusFilters = []

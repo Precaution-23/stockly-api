@@ -1,6 +1,7 @@
 const { GraphQLNonNull, GraphQLInputObjectType, GraphQLID, GraphQLString } = require('graphql')
 const VendorType = require('../types/vendorType')
 const db = require('../../../database/models')
+const { assertPermission } = require('../../helpers/requestAuth')
 
 const createVendorInput = new GraphQLInputObjectType({
   name: 'CreateVendorInput',
@@ -17,6 +18,7 @@ module.exports = {
   async resolve(_, { payload }, context) {
     try {
       const { user } = await context()
+      assertPermission(user, 'Vendors', payload.id ? 'update' : 'create')
       if (payload.id) {
         const vendor = await db.Vendor.findByPk(payload.id)
         return vendor.update({ name: payload.name, description: payload.description }, { user_id: user.id })

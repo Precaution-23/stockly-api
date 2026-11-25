@@ -1,5 +1,6 @@
 const { GraphQLNonNull, GraphQLID, GraphQLBoolean } = require('graphql')
 const db = require('../../../database/models')
+const { assertPermission } = require('../../helpers/requestAuth')
 
 module.exports = {
   type: GraphQLBoolean,
@@ -7,6 +8,8 @@ module.exports = {
   async resolve(_, { id }, context) {
     try {
       const { user } = await context()
+      assertPermission(user, 'Users', 'delete')
+      if (String(id) === String(user.id)) throw new Error('You cannot delete your own account')
       const target = await db.User.findByPk(id)
       if (!target) throw new Error('User not found')
 
